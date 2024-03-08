@@ -101,3 +101,51 @@ class Enrollment(models.Model):
 #class Submission(models.Model):
 #    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
 #    choices = models.ManyToManyField(Choice)
+
+
+class Question(models.Model):
+    """
+    Represents a question in a course.
+    Attributes:
+        course (ForeignKey): A reference to the Course model.
+        content (CharField): The content of the question.
+        grade (IntegerField): The default grade for the question.
+    Methods:
+        __str__: Returns a string representation of the question.
+        is_get_score: Checks if the selected choices are correct for the question.
+    """
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    content = models.CharField(max_length=200)
+    grade = models.IntegerField(default=50)
+
+    def __str__(self):
+        return "Question: " + self.content
+
+    def is_get_score(self, selected_ids):
+        all_answers = self.choice_set.filter(is_correct=True).count()
+        selected_correct = self.choice_set.filter(is_correct=True, id__in=selected_ids).count()
+        return all_answers == selected_correct
+
+
+class Choice(models.Model):
+    """
+    Represents a choice for a question.
+    Attributes:
+        question (ForeignKey): A reference to the Question model.
+        content (CharField): The content of the choice.
+        is_correct (BooleanField): Indicates whether the choice is correct or not.
+    """
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    content = models.CharField(max_length=200)
+    is_correct = models.BooleanField(default=False)
+
+
+class Submission(models.Model):
+    """
+    Represents a submission for an enrollment.
+    Attributes:
+        enrollment (ForeignKey): A reference to the Enrollment model.
+        choices (ManyToManyField): Many-to-many relationship with Choice model.
+    """
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
+    choices = models.ManyToManyField(Choice)
